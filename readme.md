@@ -10,7 +10,7 @@ Command line tool to convert Trackerboy .tbm to gbt-player .mod files.
 4. Use the built binary to convert your .tbm's via command line
 
 ## Usage via command line
-`tbm2mod [-o:outfile] [-s:songnum] [-q] tbmfile`
+`tbm2mod [-o:outfile] [-s:songnum] [-q] file.tbm`
 
 | Flag | Value       | Description |
 |------|-------------|-------------|
@@ -77,7 +77,7 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
 ### Effect Compatibility Notes
 - Note cuts, which appear in Trackerboy as a long dash, are interpreted by the exporter as a note cut effect. Therefore, please do not write any effect in the same row as such, as it will be ignored
 
-- Timbre effect (`Vxx`), for our purposes is exclusive to wave CH3 (which actually sets its volume, not timbre). For changing timbre/waveforms in CH3, please do not use Trackerboy's `Vxx` command. Instead, use the wave instruments provided by the gbt template file. This is the same for timbral changes in 1, 2, & 4 – please use the appropriate instrument provided in the gbt template file, as `Vxx` will be ignored in channels 1, 2, & 4.
+- Timbre effect (`Vxx`), for our purposes is exclusive to wave CH3 (which actually sets its volume, not timbre). For changing timbre/waveforms in CH3, please do not use Trackerboy's `Exx` command. Instead, use the wave instruments provided by the gbt template file. This is the same for timbral changes in 1, 2, & 4 – please use the appropriate instrument provided in the gbt template file, as `Vxx` will be ignored in channels 1, 2, & 4.
 
 
 - Auto-vibrato (`4xy`) is not supported in GBT-player. Due to this limitation, you'll need to use pitch up-slide (`1xx`) and pitch down-slide (`2xx`) instead to achieve this manually.
