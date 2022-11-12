@@ -1,8 +1,7 @@
-import lib/libtrackerboy/libtrackerboy/[data, io, common, notes]
+import ../lib/libtrackerboy/libtrackerboy/[data, io, common, notes]
 import std/[bitops, endians, math, streams]
 
-# ----- MIDI to Period Calculation -------------------------------
-
+# ----- Noise Period Calculation -----------------------------------
 let gbtNoise8veDivs: array[4, uint8] = [0u8, 3u8, 6u8, 10u8]
 let gbtPeriodNoiseAsTrackerboyMidi: array[8, uint8] = [32u8, 37u8, 42u8, 44u8, 45u8, 47u8, 48u8, 52u8]
 let gbtWhiteNoiseAsTrackerboyMidi: array[8, uint8] = [31u8, 35u8, 39u8, 47u8, 55u8, 28u8, 33u8, 37u8]
@@ -30,6 +29,7 @@ proc noiseClosest(noiseType: NoiseType, midi: uint8, outMidi: var uint8, outInde
     outIndex = uint8(lowestIndex)  
     return lowest
 
+# ----- Tone Period Calculation ------------------------------------
 proc noiseMidiToGbtMidi(noiseType: NoiseType, midi: uint8, outInst: var uint8): uint8 =
     var newMidi: uint8
     var index: uint8
@@ -57,6 +57,8 @@ func midiToModPeriod(midi: uint8): int =
     let period = c/(2.0 * midiToHertz(midi))
     return int(math.round(period))
 
+
+# ----- Effects --------------------------------------------------
 # Translates a Trackerboy effect to a GBT .mod effect
 func tbToGbtEffect(ch: uint8, effect: Effect): uint16 =
     var fx: uint8 = 0
@@ -103,6 +105,8 @@ func tbToGbtEffect(ch: uint8, effect: Effect): uint16 =
             return 0
     return rotateLeftBits(uint16(fx), 8) + param
 
+
+# ----- Module ---------------------------------------------
 func toString*(infoStr: InfoString): string =
     var res = newString(infoStr.len())
     copyMem(res[0].unsafeAddr, infoStr[0].unsafeAddr, infoStr.len())
@@ -169,7 +173,8 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                     data1: uint16 = 0
                     data2: uint16 = 0
                 let 
-                    trackRow = song[].getRow(ChannelId(channel), song[].order[i][ChannelId(channel)], row)
+                    trackRow = song[].getRow(ChannelId(channel), 
+                        song[].order[i][ChannelId(channel)], row)
                 
                 # write the note with upper instrument bits
                 if not trackRow.isEmpty():
@@ -190,7 +195,8 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                     else:             # wave channel
                         let noiseType: NoiseType = (if trackRow.instrument == 17:
                             NoiseType.sevenBit else: NoiseType.fifteenBit)
-                        period = uint16(midiToModPeriod(noiseMidiToGbtMidi(noiseType, trackRow.note, instrument)))
+                        period = uint16(midiToModPeriod(
+                            noiseMidiToGbtMidi(noiseType, trackRow.note, instrument)))
 
                     # write data into the correct bits
                     var 
@@ -213,7 +219,7 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
     system.writeFile(filenameOut, strm.data)
 
 
-# ===== Debugging =====
+# ----- Debugging -----------------------------------------------
 
 # Debug print pattern data
 proc printPatternData*(song: ref Song, ch: ChannelId, order: int): void =
@@ -230,7 +236,7 @@ proc printPatternData*(song: ref Song, ch: ChannelId, order: int): void =
                     $(effect.param) & " - "
             echo str
 
-# Debug print a particular channel's data for the length of the song
+# Debug print a particular channel's data for entire song
 proc printSongData*(self: ref Module, index: int, ch: ChannelId): void =
     # Get Title
     var title = toString(self.title)

@@ -1,35 +1,33 @@
-# Trackerboy .mod Exporter
+# Trackerboy .mod Converter
 
-*Command line tool to convert Trackerboy .tbm files to gbt-player compatible .mod files
-Compatible with GB Studio 2 and 3*
+Command line tool to convert Trackerboy .tbm to gbt-player .mod files.
 
 ## Build
-
 1. Clone this module recursively, using --recurse-submodules
 2. Install Nim: https://nim-lang.org/install.html
 3. In the root directory of this repository, call:
-    `nim compile -d:release tbm2mod.nim`
+    `nim compile -d:release -o:bin/tbm2mod src/tbm2mod.nim`
+4. Use the built binary to convert your .tbm's via command line
 
-## Usage from the command line
-
-`tbm2mod [-o:modfileOut] [-s:songNum] [-q] tbmfile`
+## Usage via command line
+`tbm2mod [-o:outfile] [-s:songnum] [-q] tbmfile`
 
 | Flag | Value       | Description |
 |------|-------------|-------------|
 | -o   | output file | exported output filepath (default: \<inputfile\>.mod) |
 | -s   | song number | zero-indexed (default: 0)
 | -q   |             | turn off standard console output, errors still show 
-|-h    |             | show this help dialogue |
+| -h   |             | show help dialogue |
 
 ### Examples
 
-Export "mysong.tbm", song 0 to "mysong.mod" in the same directory
+Export *mysong.tbm*, song 0 to *mysong.mod* in the same directory
 
 > `tbm2mod mysong.tbm`
 
-Export "mysong.tbm", song 1 to "bin/changedname.mod"
+Export *mysong.tbm*, song 1 to *bin/newname.mod*
 
-> `tbm2mod -o:bin/changedname.mod -s:1 mysong.tbm`
+> `tbm2mod -o:bin/newname.mod -s:1 mysong.tbm`
 
 
 ## Composing for gbt-player in Trackerboy
@@ -76,13 +74,13 @@ Export "mysong.tbm", song 1 to "bin/changedname.mod"
 | Note Slide-down | **R**xy |
 | Play SFX        | **T**xx |
 
-### Important Effect Compatibility Notes
+### Effect Compatibility Notes
 - Note cuts, which appear in Trackerboy as a long dash in the note column, are interpreted by the exporter as an instant note cut effect. Therefore, please do not use an effect in the same row as such, as it will be ignored
 
 - Timbre effect (**V**0x), for our purposes is exclusive to wave CH3, which actually sets its volume (not timbre/wave). For timbral changes in channels 1, 2, & 4, please use the appropriate instrument provided in the gbt template file, as **V**0x will be ignored in these channels.
 Regarding timbre/waveforms in CH3, please do not use **E**xx. Instead, use the wave instruments provided by the gbt template file.
 
-- Vibrato (**4**xy) is not supported in GBT-player. Due to this limitation, you'll need to use pitch up-slide (**1**xx) and pitch down-slide (**2**xx) instead to achieve this manually.
+- Auto-vibrato (**4**xy) is not supported in GBT-player. Due to this limitation, you'll need to use pitch up-slide (**1**xx) and pitch down-slide (**2**xx) instead to achieve this manually.
 
     For example:
 
@@ -95,9 +93,8 @@ Regarding timbre/waveforms in CH3, please do not use **E**xx. Instead, use the w
 Please check out [GB Studio's music docs](https://www.gbstudio.dev/docs/assets/music/music-gbt) for further info.
 
 ## Future Ideas
-- Auto vibrato (add pitch up and down slides automatically)
+- Auto-vibrato (add pitch up and down slides automatically)
 
 ## Last Remarks
-
 - This converter is under development, so you may need to significantly edit the exported .mod file to produce the intended effect.
-- Exporting with this tool overwrites the target file, so please be careful to not overwrite any important direct edits to the mod file you have made. It would be wise to save backup copies of important work.
+- Exporting with this tool overwrites the target file, so please be careful to not overwrite any important direct edits to the mod file you have made. It would be wise to save backup copies of any important work.
