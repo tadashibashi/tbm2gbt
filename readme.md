@@ -3,10 +3,10 @@
 Command line tool to convert Trackerboy .tbm to gbt-player .mod files.
 
 ## Build
-1. Clone this module recursively, using --recurse-submodules
+1. Clone this repository
 2. Install Nim: https://nim-lang.org/install.html
 3. In the root directory of this repository, call:
-    `nim compile -d:release -o:bin/tbm2mod src/tbm2mod.nim`
+    `nimble build`
 4. Use the built binary to convert your .tbm's via command line
 
 ## Usage via command line
