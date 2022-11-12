@@ -90,7 +90,7 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
         --- -- 201
         --- -- 101
 
-Please check out [GB Studio's music docs](https://www.gbstudio.dev/docs/assets/music/music-gbt) for further info.
+Please check out [Trackerboy's Effect List](https://www.trackerboy.org/manual/tracker/effect-list/) and [GB Studio's GBT Music docs](https://www.gbstudio.dev/docs/assets/music/music-gbt) for further info.
 
 ## Future Ideas
 - Auto-vibrato (add pitch up and down slides automatically)
