@@ -24,12 +24,6 @@ if filenameOut == "":
     removeSuffix(filenameOut, ".tbm")
     filenameOut &= ".mod"
 
-# If no output filename, use the input name
-if filenameOut == "":
-    filenameOut = filenameIn
-    removeSuffix(filenameOut, ".tbm")
-    filenameOut &= ".mod"
-
 # Open trackerboy module file
 let module = openModule(filenameIn)
 
