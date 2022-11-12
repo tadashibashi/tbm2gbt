@@ -1,6 +1,6 @@
 import cmdline
 import gbtmod
-import ../lib/libtrackerboy/libtrackerboy
+import libtrackerboy/data
 import std/strutils
 
 # Get command line arguments

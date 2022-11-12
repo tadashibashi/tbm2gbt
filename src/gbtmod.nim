@@ -1,4 +1,4 @@
-import ../lib/libtrackerboy/libtrackerboy/[data, io, common, notes]
+import libtrackerboy/[data, io, common, notes]
 import std/[bitops, endians, math, streams]
 
 # ----- Noise Period Calculation -----------------------------------
