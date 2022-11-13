@@ -7,3 +7,4 @@ binDir      = "bin"
 bin         = @["tbm2mod"]
 
 requires "https://github.com/stoneface86/libtrackerboy#v0.7.0"
+requires "https://github.com/planety/fsnotify"

@@ -1,7 +1,8 @@
 import cmdline
 import gbtmod
 import libtrackerboy/data
-import std/strutils
+import std/[strutils, os]
+import fsnotify
 
 # Get command line arguments
 var 
@@ -10,7 +11,8 @@ var
     songNumber = 0
     patternNumber = 0
     quiet = false
-getArgs(filenameIn, filenameOut, songNumber, patternNumber, quiet)
+    watch = false
+getArgs(filenameIn, filenameOut, songNumber, patternNumber, quiet, watch)
 
 # Check arguments
 if filenameIn == "":
@@ -56,19 +58,38 @@ if not quiet:
     echo "  "
     echo "------------------------------------------------\n"
 
-# Do conversion and file write
-writeMod(song, patternNumber, filenameOut)
 
 
-if not quiet:
-    # Display any caveats or problems from conversion here
 
-    # Warn user if more than 1 effect columns on any channel
-    for ch in countup(0, 3):
-        if song.effectCounts[ch] > 1:
-            echo "Warning: CH" & $(ch + 1) & " has more than one effect column. " &
-                "Effects on columns beyond the first are ignored."
-    
-    # :)
-    echo "Conversion complete!"
 
+proc writeModFunc() =
+    # Do conversion and file write
+    writeMod(song, patternNumber, filenameOut)
+
+    if not quiet:
+        # Display any caveats or problems from conversion here
+
+        # Warn user if more than 1 effect columns on any channel
+        for ch in countup(0, 3):
+            if song.effectCounts[ch] > 1:
+                echo "Warning: CH" & $(ch + 1) & " has more than one effect column. " &
+                    "Effects on columns beyond the first are ignored."
+        
+        # :)
+        echo "Conversion complete!"
+
+proc watcherEventHandler(event: seq[PathEvent]) {.gcsafe.}=
+    writeModFunc()
+    if watch:
+        echo "Watching input file for changes..."
+
+if watch:
+    var watcher = initWatcher()
+
+    register(watcher, filenameIn, watcherEventHandler)
+    writeModFunc()
+    while true:
+        sleep(500)
+        process(watcher)
+else:
+    writeModFunc()

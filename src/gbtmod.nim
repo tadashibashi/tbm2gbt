@@ -1,5 +1,5 @@
 import libtrackerboy/[data, io, common, notes]
-import std/[bitops, endians, math, streams]
+import std/[bitops, endians, math, os, streams]
 
 # ----- Noise Period Calculation -----------------------------------
 let gbtNoise8veDivs: array[4, uint8] = [0u8, 3u8, 6u8, 10u8]
@@ -12,12 +12,16 @@ type NoiseType = enum sevenBit, fifteenBit
 proc noiseClosest(noiseType: NoiseType, midi: uint8, outMidi: var uint8, outIndex: var uint8): int =
     var lowest: int = 1000000
     var lowestIndex: int = -1
-    
+    var modifiedMidi = (if noiseType == NoiseType.fifteenBit: 
+        midi - 1 
+    else:
+        midi - 3)
+
     for i in countup(0, 7):
         var diff = int(midi) - (if noiseType == NoiseType.sevenBit: 
                 int(gbtPeriodNoiseAsTrackerboyMidi[i]) 
             else: 
-                int(gbtWhiteNoiseAsTrackerboyMidi[i]))
+                int(gbtWhiteNoiseAsTrackerboyMidi[i])) 
         if abs(diff) < abs(lowest):
             lowest = diff
             lowestIndex = i
@@ -34,7 +38,7 @@ proc noiseMidiToGbtMidi(noiseType: NoiseType, midi: uint8, outInst: var uint8): 
     var newMidi: uint8
     var index: uint8
     const middleC = 24
-    var diff = noiseClosest(noiseType, midi - 1, newMidi, index)
+    var diff = noiseClosest(noiseType, midi, newMidi, index)
     var octave = int floor(float(diff)/4f) + 2
     var noteOffset = gbtNoise8veDivs[(diff + middleC) mod 4]
 
@@ -143,7 +147,7 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
     var strm = newStringStream()
     
     # write template base
-    let bin = readFile("data/base.bin")
+    let bin = readFile(os.getAppDir() & "/data/base.bin")
     strm.write(bin)
 
     # alter the module name
@@ -188,20 +192,20 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                             else: 
                                 tbToGbtEffect(uint8 channel, trackRow.effects[0]))
 
-                    if channel != 3:  # ch1, ch2, ch4
+                    if channel != 3:  # ch1, ch2, ch3
                         if trackRow.note != 85 and trackRow.note != 0:
                             period = uint16(midiToModPeriod(trackRow.note))
                         instrument = trackRow.instrument
-                    else:             # wave channel
-                        let noiseType: NoiseType = (if trackRow.instrument == 17:
+                    else:             # noise channel
+                        let noiseType: NoiseType = (if trackRow.instrument == 0x11 + 1:
                             NoiseType.sevenBit else: NoiseType.fifteenBit)
                         period = uint16(midiToModPeriod(
                             noiseMidiToGbtMidi(noiseType, trackRow.note, instrument)))
 
                     # write data into the correct bits
                     var 
-                        instUpper = bitand(instrument, 0b11110000)
-                        instLower = bitand(instrument, 0b00001111)
+                        instUpper = bitand(instrument-1, 0b11110000)
+                        instLower = bitand(instrument-1, 0b00001111)
                     bytes1and2 += rotateLeftBits(uint16(instUpper), 8)
                     bytes1and2 += period
                     bytes3and4 += rotateLeftBits(uint16(instLower), 12)
@@ -213,11 +217,10 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                 strm.writeData(data2.unsafeAddr, 2)
 
     # append sample data (for playback in mod players)
-    let inst = readFile("data/inst.bin")
+    let inst = readFile(os.getAppDir() & "/data/inst.bin")
     strm.write(inst)
 
     system.writeFile(filenameOut, strm.data)
-
 
 # ----- Debugging -----------------------------------------------
 
