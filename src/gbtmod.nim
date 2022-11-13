@@ -10,9 +10,10 @@ type NoiseType = enum sevenBit, fifteenBit
 
 # Returns the difference of the closest trackerboy midi value that gbt player uses
 proc noiseClosest(noiseType: NoiseType, midi: uint8, outMidi: var uint8, outIndex: var uint8): int =
+    var midi = midi
     var lowest: int = 1000000
     var lowestIndex: int = -1
-    var modifiedMidi = (if noiseType == NoiseType.fifteenBit: 
+    midi = (if noiseType == NoiseType.fifteenBit: 
         midi - 1 
     else:
         midi - 3)
@@ -94,7 +95,7 @@ func tbToGbtEffect(ch: uint8, effect: Effect): uint16 =
                 else: 8'u8) + 0x80
         of etSetTempo:
             fx = 0xF
-            param = effect.param
+            param = rotateRightBits(effect.param, 4)
         of etPitchUp:
             fx = 0x1
             param = effect.param
@@ -185,22 +186,26 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                     var bytes1and2: uint16 = 0
                     var bytes3and4: uint16 = 0
                     var period: uint16 = 0
-                    var instrument: uint8 = 0
+                    var instrument: uint8 = 1
                     var effect: uint16 = 
                         (if trackRow.note >= notes.noteCut:
                                 0xEC0'u16
+        
                             else: 
                                 tbToGbtEffect(uint8 channel, trackRow.effects[0]))
 
                     if channel != 3:  # ch1, ch2, ch3
-                        if trackRow.note != 85 and trackRow.note != 0:
+                        if not (trackRow.note >= notes.noteCut) and trackRow.note != 0:
                             period = uint16(midiToModPeriod(trackRow.note))
-                        instrument = trackRow.instrument
+                            instrument = trackRow.instrument
+                            
                     else:             # noise channel
                         let noiseType: NoiseType = (if trackRow.instrument == 0x11 + 1:
                             NoiseType.sevenBit else: NoiseType.fifteenBit)
                         period = uint16(midiToModPeriod(
                             noiseMidiToGbtMidi(noiseType, trackRow.note, instrument)))
+                        if trackRow.note >= notes.noteCut or trackRow.note == 0:
+                            instrument = 1
 
                     # write data into the correct bits
                     var 
