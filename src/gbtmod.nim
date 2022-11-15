@@ -13,10 +13,8 @@ proc noiseClosest(noiseType: NoiseType, midi: uint8, outMidi: var uint8, outInde
     var midi = midi
     var lowest: int = 1000000
     var lowestIndex: int = -1
-    midi = (if noiseType == NoiseType.fifteenBit: 
-        midi - 1 
-    else:
-        midi - 3)
+    if noiseType == NoiseType.fifteenBit: 
+        midi = midi + 4
 
     for i in countup(0, 7):
         var diff = int(midi) - (if noiseType == NoiseType.sevenBit: 
@@ -41,6 +39,8 @@ proc noiseMidiToGbtMidi(noiseType: NoiseType, midi: uint8, outInst: var uint8): 
     const middleC = 24
     var diff = noiseClosest(noiseType, midi, newMidi, index)
     var octave = int floor(float(diff)/4f) + 2
+    while diff < 0:
+        diff = diff + 4 # hack for non-reflective mod func
     var noteOffset = gbtNoise8veDivs[(diff + middleC) mod 4]
 
     let retMidi = uint8(octave) * 12u8 + noteOffset + 1
@@ -95,7 +95,8 @@ func tbToGbtEffect(ch: uint8, effect: Effect): uint16 =
                 else: 8'u8) + 0x80
         of etSetTempo:
             fx = 0xF
-            param = rotateRightBits(effect.param, 4)
+            # Shift over param 4-bits, due to Trackerboy F50 == .mod F05
+            param = uint8(float(effect.param) / 16f)
         of etPitchUp:
             fx = 0x1
             param = effect.param
@@ -190,7 +191,6 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                     var effect: uint16 = 
                         (if trackRow.note >= notes.noteCut:
                                 0xEC0'u16
-        
                             else: 
                                 tbToGbtEffect(uint8 channel, trackRow.effects[0]))
 
@@ -206,7 +206,7 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                             noiseMidiToGbtMidi(noiseType, trackRow.note, instrument)))
                         if trackRow.note >= notes.noteCut or trackRow.note == 0:
                             instrument = 1
-
+                    if instrument == 0: instrument = 1
                     # write data into the correct bits
                     var 
                         instUpper = bitand(instrument-1, 0b11110000)

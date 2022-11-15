@@ -7,18 +7,28 @@ proc displayHelp*(): void =
     echo "   -s   songnumber   zero-indexed (default: 0)"
     echo "   -q                turn off standard console output, errors will still show"
     echo "   -w                watches file input file for changes every second, and auto-exports"
+    echo "   -f                open the generated .mod file after converting"
     echo "   -h                show this help dialogue"
 
-proc getArgs*(filenameIn: var string, filenameOut: var string, 
-    songNumber: var int, patternNumber: var int, quiet: var bool, watch: var bool): void =
-    var args = initOptParser(commandLineParams())
+type CmdLineArgs* = tuple
+    filenameIn: string
+    filenameOut: string
+    songNumber: int
+    startPattern: int
+    quiet: bool
+    watch: bool
+    postOpen: bool
 
-    filenameIn = ""
-    filenameOut = ""
-    songNumber = 0
-    patternNumber = 0
-    quiet = false
-    watch = false
+proc getArgs*(): CmdLineArgs =
+    var args = initOptParser(commandLineParams())
+    var ret: CmdLineArgs
+    ret.filenameIn = ""
+    ret.filenameOut = ""
+    ret.songNumber = 0
+    ret.startPattern = 0
+    ret.quiet = false
+    ret.watch = false
+    ret.postOpen = false
 
     while true:
         args.next()
@@ -27,16 +37,18 @@ proc getArgs*(filenameIn: var string, filenameOut: var string,
         of cmdShortOption, cmdLongOption:
             case args.key
             of "o":
-                filenameOut = args.val
+                ret.filenameOut = args.val
             of "s":
-                songNumber = parseInt(args.val)
+                ret.songNumber = parseInt(args.val)
             of "p":
-                patternNumber = parseInt(args.val)
+                ret.startPattern = parseInt(args.val)
             of "h":
                 displayHelp()
             of "q":
-                quiet = true
+                ret.quiet = true
             of "w":
-                watch = true
+                ret.watch = true
         of cmdArgument:
-            filenameIn = args.key
+            ret.filenameIn = args.key
+
+    return ret

@@ -37,8 +37,9 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
 - Leave the Trackerboy instruments and waveforms as-is, since they will not sound correctly during playback in gbt-player otherwise.
 - Add a tempo (`Fxx`) command at the top of your file.
 - Make sure to add a pattern skip effect (`Dxx`) at the end of any pattern with a length of less than 64.
-- Noise channel range works on keys C4-B6
+- Noise channel range works on keys C4-B6. In GB Studio 3.0 and higher, you will get a gradient of timbres. However, it is a special version of gbt-player. Every other version of gbt-player will be constricted to 8 particular tones across the keyboard.
 - Since gbt-player is a compact driver with a subset of Trackerboy's effects catalogue, we've attached a list of compatible effects below.
+- You can only use one column of effects, others will be ignored.
 
 ### Compatible Effects
 | Channel Effect  | Trackerboy Command | |
@@ -75,10 +76,11 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
 | Play SFX        | **T**xx |
 
 ### Effect Compatibility Notes
-- Note cuts, which appear in Trackerboy as a long dash, are interpreted by the exporter as a note cut effect. Therefore, please do not write any effect in the same row as such, as it will be ignored
+- Envelope effect (`Exy`) must always be accompanied by a note when set. On the other hand, it's okay to write notes without an envelope effect. It will maintain the last envelope effect that was called on the channel. One case where this can easily cause a user error is: setting `E00`, expecting to cut off a note. Instead, it is better to write a note cut note (long dash) or effect (`S00`)
+
+- Note cuts, which appear in Trackerboy as a long dash, are interpreted by this converter as a note cut effect. Therefore, please do not write any effect in the same row as such, as it will be ignored
 
 - Timbre effect (`Vxx`), for our purposes is exclusive to wave CH3 (which actually sets its volume, not timbre). For changing timbre/waveforms in CH3, please do not use Trackerboy's `Exx` command. Instead, use the wave instruments provided by the gbt template file. This is the same for timbral changes in 1, 2, & 4 – please use the appropriate instrument provided in the gbt template file, as `Vxx` will be ignored in channels 1, 2, & 4.
-
 
 - Auto-vibrato (`4xy`) is not supported in GBT-player. Due to this limitation, you'll need to use pitch up-slide (`1xx`) and pitch down-slide (`2xx`) instead to achieve this manually.
 
@@ -89,6 +91,18 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
         --- -- 101
         --- -- 201
         --- -- 101
+        --- -- 100
+
+- Pitch slides up (`1xx`) and down (`2xx`) get cancelled out to zero in gbt-player after the row is finished, but in Trackerboy they stick. For this reason, we recommend to use a second effect column to write `100` to stop the slide effect in Trackerboy.
+
+    In the last example, since `100` is redundant in gbt-player, let's move it over to column 2 make room for another effect in column 1. (Click on the `+` icon at the top of the channel to reveal another effect row):
+        C-5 01 --- ---
+        --- -- 201 ---
+        --- -- 101 ---
+        --- -- 201 ---
+        --- -- 101 ---
+        G-5 01 E20 100
+
 
 Please check out [Trackerboy's Effect List](https://www.trackerboy.org/manual/tracker/effect-list/) and [GB Studio's GBT Music docs](https://www.gbstudio.dev/docs/assets/music/music-gbt) for further info.
 
