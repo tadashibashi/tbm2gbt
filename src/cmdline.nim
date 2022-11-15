@@ -48,6 +48,8 @@ proc getArgs*(): CmdLineArgs =
                 ret.quiet = true
             of "w":
                 ret.watch = true
+            of "f":
+                ret.postOpen = true
         of cmdArgument:
             ret.filenameIn = args.key
 
