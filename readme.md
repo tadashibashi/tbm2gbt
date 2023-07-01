@@ -1,6 +1,24 @@
 # Trackerboy .mod Converter
 
-Command line tool to convert Trackerboy .tbm to gbt-player .mod files.
+Command line tool to convert [Trackerboy](https://www.trackerboy.org) .tbm to [GB Studio's gbt-player](https://github.com/tadashibashi/gbstudio-mod-example) .mod files
+
+This tool provides an alternate workflow to creating .mod files for GB Studio, namely: 
+create in Trackerboy, export to GB Studio .mod.
+
+Note that the output makes use of the extended effects of 
+[GB Studio's gbt-player](https://github.com/tadashibashi/gbstudio-mod-example) and will not playback accurately 
+using the main branch gbt-player.
+
+## Why?
+
+Playback of the template gbt-player .mod file is highly inaccurate in mod editors, especially the noise channel. This exporter attempts to best match the sound heard in TrackerBoy to the sound output in GB Studio's player.
+
+Trackerboy's interface is clean, user-friendly, and familiar to users of FamiTracker.
+
+## Tools Used
+
+![Nim](https://img.shields.io/badge/nim-%23FFE953.svg?style=for-the-badge&logo=nim&logoColor=white)
+
 
 ## Build
 1. Clone this repository
@@ -110,5 +128,5 @@ Please check out [Trackerboy's Effect List](https://www.trackerboy.org/manual/tr
 - Auto-vibrato (add pitch up and down slides automatically)
 
 ## Last Remarks
-- This converter is under development, so you may need to significantly edit the exported .mod file to produce the intended effect.
-- Exporting with this tool overwrites the target file, so please be careful to not overwrite any important direct edits to the mod file you have made. It would be wise to save backup copies of any important work.
+- This converter is under development, so there will be bugs. Please report them in Issues.
+- Exporting with this tool overwrites the target file, so any direct edits to the generated .mod file will be overwritten. Please save backups of any such edits.
