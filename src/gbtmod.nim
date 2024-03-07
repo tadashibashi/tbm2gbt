@@ -1,5 +1,6 @@
 import libtrackerboy/[data, io, common, notes]
-import std/[bitops, endians, math, os, streams]
+import std/[bitops, endians, math, streams]
+
 
 # ----- Noise Period Calculation -----------------------------------
 let gbtNoise8veDivs: array[4, uint8] = [0u8, 3u8, 6u8, 10u8]
@@ -142,15 +143,14 @@ proc getPatternData(song: ref Song, ch: ChannelId, order: int): array[64, TrackR
     return rows
 
 # Converts song data into gbt player compatible .mod format, starting at patternNumber
-proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
+proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string, baseBinData: string, baseInstData: string): void =
     if patternNumber >= song.order.len:
         return
 
     var strm = newStringStream()
 
     # write template base
-    let bin = readFile(os.getAppDir() & "/data/base.bin")
-    strm.write(bin)
+    strm.write(baseBinData)
 
     # alter the module name
     var name: array[20, char]
@@ -222,8 +222,7 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                 strm.writeData(data2.unsafeAddr, 2)
 
     # append sample data (for playback in mod players)
-    let inst = readFile(os.getAppDir() & "/data/inst.bin")
-    strm.write(inst)
+    strm.write(baseInstData)
 
     system.writeFile(filenameOut, strm.data)
 

@@ -7,6 +7,8 @@ import fsnotify
 # Command line program object type
 type Tbm2Mod {.requiresInit.} = object
     args: CmdLineArgs
+    baseData: string
+    instData: string
 
 
 proc init(T: type Tbm2Mod): T =
@@ -26,6 +28,8 @@ proc init(T: type Tbm2Mod): T =
 
     return T(
         args: args,
+        baseData: readFile(os.getAppDir() & "/data/base.bin"),
+        instData: readFile(os.getAppDir() & "/data/inst.bin")
     )
 
 
@@ -67,7 +71,7 @@ proc main(self: Tbm2Mod, firstRun: bool = false) =
             echo "------------------------------------------------\n"
 
     # Do conversion and file write
-    writeMod(song, args.startPattern, args.filenameOut)
+    writeMod(song, args.startPattern, args.filenameOut, self.baseData, self.instData)
 
     if not args.quiet:
         # Display any caveats or problems from conversion here
