@@ -123,9 +123,9 @@ so the following guidelines should be followed.
         --- -- 101
         --- -- 100
 
-    Pitch slides up (`1xx`) and down (`2xx`) get cancelled out to zero in GB Studio after the row is finished, but in Trackerboy they stick. For this reason, we recommend to use a second effect column to write `100` to stop the slide effect cosmetically in Trackerboy.
+    Pitch slides up (`1xx`) and down (`2xx`) get cancelled out to zero in GB Studio after the row is finished, but in Trackerboy they stick. For this reason, add a `100` effect to stop the slide effect cosmetically in Trackerboy.
 
-    In the last example, since writing `100` is redundant for GB Studio, let's move it over to column 2 make room for another effect in column 1. (Click on the `+` icon at the top of the channel column in Trackerboy to reveal another effect row):
+    Since writing `100` is only cosmetic, let's move it over to column 2 make room for another effect in column 1. (Click on the `+` icon at the top of the channel column in Trackerboy to reveal another effect row):
 
         C-5 01 --- ---
         --- -- 201 ---
@@ -145,4 +145,4 @@ For further reading, please check out [Trackerboy's Effect List](https://www.tra
 - For bug reports, please create a Github Issue.
 - Exporting with this tool overwrites the target file - please save backups of any direct edits you wish to keep at the export location before running the program.
 - This converter targets the [GB Studio music player](https://github.com/tadashibashi/gbstudio-mod-example), which is based on a fork of gbt-player, and will not play back accurately using a build from gbt-player's main branch.
-- Music in GB Studio 3 is noticeably faster, due to a change in timer speed by the developers. This causes a discrepancy where the music is slightly faster in-engine. You can adjust the music timer speed in GB Studio 3.2.1 by editing line 103 of assets/engine/include/music_manager.h, in function `music_setup_timer`, change the numbers `0x80u : 0xC0u` at the end of the line, to `0x78u : 0xBCu`
+- Music in GB Studio 3 is noticeably faster, due to a change in timer speed by the developers. This causes a discrepancy where the music is slightly faster in-engine. You can adjust the music timer speed in GB Studio 3.2.1 by editing line 103 of assets/engine/include/music_manager.h, in function `music_setup_timer` that sets the register `TMA_REG`, change the numbers `0x80u : 0xC0u` at the end of the line, to `0x78u : 0xBCu`. This approximates the timer back down to about 60.2 ticks per second
