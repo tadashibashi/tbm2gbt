@@ -13,23 +13,23 @@ proc noiseClosest(noiseType: NoiseType, midi: uint8, outMidi: var uint8, outInde
     var midi = midi
     var lowest: int = 1000000
     var lowestIndex: int = -1
-    if noiseType == NoiseType.fifteenBit: 
+    if noiseType == NoiseType.fifteenBit:
         midi = midi + 4
 
     for i in countup(0, 7):
-        var diff = int(midi) - (if noiseType == NoiseType.sevenBit: 
-                int(gbtPeriodNoiseAsTrackerboyMidi[i]) 
-            else: 
-                int(gbtWhiteNoiseAsTrackerboyMidi[i])) 
+        var diff = int(midi) - (if noiseType == NoiseType.sevenBit:
+                int(gbtPeriodNoiseAsTrackerboyMidi[i])
+            else:
+                int(gbtWhiteNoiseAsTrackerboyMidi[i]))
         if abs(diff) < abs(lowest):
             lowest = diff
             lowestIndex = i
             if diff == 0: # numbers match, number found
                 break
 
-    outMidi = (if noiseType == NoiseType.sevenBit: gbtPeriodNoiseAsTrackerboyMidi[lowestIndex] 
+    outMidi = (if noiseType == NoiseType.sevenBit: gbtPeriodNoiseAsTrackerboyMidi[lowestIndex]
         else: gbtWhiteNoiseAsTrackerboyMidi[lowestIndex])
-    outIndex = uint8(lowestIndex)  
+    outIndex = uint8(lowestIndex)
     return lowest
 
 # ----- Tone Period Calculation ------------------------------------
@@ -107,7 +107,7 @@ func tbToGbtEffect(ch: uint8, effect: Effect): uint16 =
             if ch == 2: # V commands effect wave ch volume in Trackerboy
                 fx = 0xC
                 param = effect.param * 0x10
-        else: 
+        else:
             return 0
     return rotateLeftBits(uint16(fx), 8) + param
 
@@ -126,6 +126,7 @@ proc openModule*(path: string): ref Module =
     strm.setPosition(0)
 
     var module = Module.new
+
     let res = module[].deserialize(strm)
     if res != frNone:
         echo "Error: failed to deserialize trackerboy module!"
@@ -134,7 +135,7 @@ proc openModule*(path: string): ref Module =
 
 proc getPatternData(song: ref Song, ch: ChannelId, order: int): array[64, TrackRow] =
     var rows: array[64, TrackRow]
-    
+
     for i in countup(0, song[].patternLen(order)-1):
         var row = song[].getRow(ch, song.order[order][ch], i)
         rows[i] = row
@@ -144,10 +145,9 @@ proc getPatternData(song: ref Song, ch: ChannelId, order: int): array[64, TrackR
 proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
     if patternNumber >= song.order.len:
         return
-    
 
     var strm = newStringStream()
-    
+
     # write template base
     let bin = readFile(os.getAppDir() & "/data/base.bin")
     strm.write(bin)
@@ -159,7 +159,7 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
 
     # alter the length data
     strm.data[950] = char(song.order.len)
-    
+
     for i in countup(patternNumber, song.order.len-1):
         # write in sequence indices
         strm.data[952 + i] = char(i)
@@ -174,50 +174,50 @@ proc writeMod*(song: ref Song, patternNumber: int, filenameOut: string): void =
                 if song[].trackLen <= row:
                     strm.write("\0\0\0\0") # some nicer way to do this?
                     continue
-                
-                var 
+
+                var
                     data1: uint16 = 0
                     data2: uint16 = 0
-                let 
-                    trackRow = song[].getRow(ChannelId(channel), 
+                let
+                    trackRow = song[].getRow(ChannelId(channel),
                         song[].order[i][ChannelId(channel)], row)
-                
+
                 # write the note with upper instrument bits
                 if not trackRow.isEmpty():
                     var bytes1and2: uint16 = 0
                     var bytes3and4: uint16 = 0
                     var period: uint16 = 0
                     var instrument: uint8 = 1
-                    var effect: uint16 = 
+                    var effect: uint16 =
                         (if trackRow.note >= notes.noteCut:
                                 0xEC0'u16
-                            else: 
+                            else:
                                 tbToGbtEffect(uint8 channel, trackRow.effects[0]))
 
                     if channel != 3:  # ch1, ch2, ch3
                         if not (trackRow.note >= notes.noteCut) and trackRow.note != 0:
-                            period = uint16(midiToModPeriod(trackRow.note))
+                            period = uint16 midiToModPeriod(trackRow.note)
                             instrument = trackRow.instrument
-                            
+
                     else:             # noise channel
                         let noiseType: NoiseType = (if trackRow.instrument == 0x11 + 1:
                             NoiseType.sevenBit else: NoiseType.fifteenBit)
-                        period = uint16(midiToModPeriod(
-                            noiseMidiToGbtMidi(noiseType, trackRow.note, instrument)))
+                        period = uint16 midiToModPeriod(
+                            noiseMidiToGbtMidi(noiseType, trackRow.note, instrument))
                         if trackRow.note >= notes.noteCut or trackRow.note == 0:
                             instrument = 1
                     if instrument == 0: instrument = 1
                     # write data into the correct bits
-                    var 
+                    var
                         instUpper = bitand(instrument-1, 0b11110000)
                         instLower = bitand(instrument-1, 0b00001111)
-                    bytes1and2 += rotateLeftBits(uint16(instUpper), 8)
+                    bytes1and2 += rotateLeftBits(uint16 instUpper, 8)
                     bytes1and2 += period
-                    bytes3and4 += rotateLeftBits(uint16(instLower), 12)
+                    bytes3and4 += rotateLeftBits(uint16 instLower, 12)
                     bytes3and4 += effect
                     bigEndian16(addr(data1), addr(bytes1and2)) # ensure correct byte order
                     bigEndian16(addr(data2), addr(bytes3and4)) # ensure correct byte order
-                
+
                 strm.writeData(data1.unsafeAddr, 2)
                 strm.writeData(data2.unsafeAddr, 2)
 
@@ -237,10 +237,10 @@ proc printPatternData*(song: ref Song, ch: ChannelId, order: int): void =
         if row.isEmpty():
             echo "---------"
         else:
-            var str = "N" & $(row.note) & ", I" & 
+            var str = "N" & $(row.note) & ", I" &
                 $(row.instrument) & ", FX: "
             for effect in row.effects:
-                str &= $(effect.effectType) & " " & 
+                str &= $(effect.effectType) & " " &
                     $(effect.param) & " - "
             echo str
 
@@ -249,7 +249,7 @@ proc printSongData*(self: ref Module, index: int, ch: ChannelId): void =
     # Get Title
     var title = toString(self.title)
     echo "Title: " & title
-    
+
     #Get Song 1 Pattern 1 Data
     let song = self.songs[0]
     echo "Song 1\n Name: " & song.name
