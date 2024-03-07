@@ -108,7 +108,7 @@ so the following guidelines should be followed.
 - ##### Timbral effects are set by instrument number
 
     GB Studio uses instrument number presets to accomplish timbral changes.
-    For changing timbre/waveforms in channels 1-4, please use the appropriate instrument numbers in the template file instead of using effects. `Vxx`, for our purposes will only be used as the volume setting for CH3, and will be ignored in channels 1, 2, & 4.
+    For changing timbre/waveforms, please use the appropriate instrument numbers in the template file instead of using effects. `Vxx`, for our purposes will only be used as the volume setting for CH3, and will be ignored in channels 1, 2, & 4.
 
 - ##### Auto-vibrato (`4xy`) is not supported in GB Studio
 
@@ -142,6 +142,7 @@ For further reading, please check out [Trackerboy's Effect List](https://www.tra
 
 ## Last Remarks
 
+- For bug reports, please create a Github Issue.
 - Exporting with this tool overwrites the target file - please save backups of any direct edits you wish to keep at the export location before running the program.
 - This converter targets the [GB Studio music player](https://github.com/tadashibashi/gbstudio-mod-example), which is based on a fork of gbt-player, and will not play back accurately using a build from gbt-player's main branch.
-- For bug reports, please create a Github Issue.
+- Music in GB Studio 3 is noticeably faster, due to a change in timer speed by the developers. This causes a discrepancy where the music is slightly faster in-engine. You can adjust the music timer speed in GB Studio 3.2.1 by editing line 103 of assets/engine/include/music_manager.h, in function `music_setup_timer`, change the numbers `0x80u : 0xC0u` at the end of the line, to `0x78u : 0xBCu`
