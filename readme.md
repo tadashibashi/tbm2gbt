@@ -1,15 +1,9 @@
-# Trackerboy .mod Converter
+# Trackerboy to .MOD Converter
 
-Command line tool to convert [Trackerboy](https://www.trackerboy.org) .tbm to [GB Studio's gbt-player](https://github.com/tadashibashi/gbstudio-mod-example) .mod files
+Create in [Trackerboy](https://www.trackerboy.org), export to [GB Studio](https://www.gbstudio.dev) .MOD files
 
-This tool provides an alternate workflow to creating .mod files for GB Studio, namely: 
-create in Trackerboy, export to GB Studio .mod.
 
-Note that the output makes use of the extended effects of 
-[GB Studio's gbt-player](https://github.com/tadashibashi/gbstudio-mod-example) and will not playback accurately 
-using the main branch gbt-player.
-
-## Why?
+## Motivation for this Program
 
 Playback of the template gbt-player .mod file is highly inaccurate in mod editors, especially the noise channel. This exporter attempts to best match the sound heard in TrackerBoy to the sound output in GB Studio's player.
 
@@ -23,8 +17,7 @@ Trackerboy's interface is clean, user-friendly, and familiar to users of FamiTra
 ## Build
 1. Clone this repository
 2. Install Nim: https://nim-lang.org/install.html
-3. In the root directory of this repository, call:
-    `nimble build`
+3. In the root directory of this repository, call: `nimble build`
 4. Use the built binary to convert your .tbm's via command line
 
 ## Usage via command line
@@ -34,30 +27,34 @@ Trackerboy's interface is clean, user-friendly, and familiar to users of FamiTra
 |------|-------------|-------------|
 | -o   | output file | exported output filepath (default: \<inputfile\>.mod) |
 | -s   | song number | zero-indexed (default: 0)
-| -q   |             | turn off standard console output, errors still show 
+| -q   |             | turn off standard console output, errors still show
 | -h   |             | show help dialogue |
 
-### Examples
+### Example usage
 
-Export *mysong.tbm*, song 0 to *mysong.mod* in the same directory
+##### Export `mysong.tbm`, song 0 to `mysong.mod` in the same directory.
 
 > `tbm2mod mysong.tbm`
 
-Export *mysong.tbm*, song 1 to *bin/newname.mod*
+Note: omitting an output filename exports a file with the same name to the same directory as the input, but with the `.mod` extension
+
+##### Export *mysong.tbm*, song 1 to *bin/newname.mod*
 
 > `tbm2mod -o:bin/newname.mod -s:1 mysong.tbm`
 
 
-## Composing for gbt-player in Trackerboy
+## Composing for GB Studio in Trackerboy
+
+This program uses a subset of Trackerboy's features to match GB Studio's player,
+so the following guidelines should be followed.
 
 ### Guidelines
 - Copy and use the provided gbt-template.tbm file when beginning a new composition.
 - Leave the Trackerboy instruments and waveforms as-is, since they will not sound correctly during playback in gbt-player otherwise.
 - Add a tempo (`Fxx`) command at the top of your file.
 - Make sure to add a pattern skip effect (`Dxx`) at the end of any pattern with a length of less than 64.
-- Noise channel range works on keys C4-B6. In GB Studio 3.0 and higher, you will get a gradient of timbres. However, it is a special version of gbt-player. Every other version of gbt-player will be constricted to 8 particular tones across the keyboard.
-- Since gbt-player is a compact driver with a subset of Trackerboy's effects catalogue, we've attached a list of compatible effects below.
-- You can only use one column of effects, others will be ignored.
+- Noise channel range works on keys C4-B6. In GB Studio 3.0 and higher, you will get a gradient of timbres, otherwise the keyboard is distributed over only 8 tones.
+- GB Studio's player can only process one column of effects, others besides the first column may sound in Trackerboy, but will be ignored in the exported file.
 
 ### Compatible Effects
 | Channel Effect  | Trackerboy Command | |
@@ -68,7 +65,7 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
 | Volume Envelope | **E**xy | `x` - starting volume (0-F), `y` - envelope (0,8: none, 1-7: decay, 9-F: ramp to full volume). For CH3, use **V**0x |
 | Panning         | **I**0x | `x` - sets pan (1: left, 2: right, 3: center)
 | Delayed Note-cut| **S**0x | `x` - number of frames until note cut
-| Channel Timbre  | **V**0x | `x` - volume setting for CH3 only (0-3)
+| Channel Timbre  | **V**0x | `x` - volume setting for **CH3 only** (0-3)
 
 | Song Effect     | Trackerboy Command | |
 | --------------- | ------- | ------- |
@@ -94,13 +91,28 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
 | Play SFX        | **T**xx |
 
 ### Effect Compatibility Notes
-- Envelope effect (`Exy`) must always be accompanied by a note when set. On the other hand, it's okay to write notes without an envelope effect. It will maintain the last envelope effect that was called on the channel. One case where this can easily cause a user error is: setting `E00`, expecting to cut off a note. Instead, it is better to write a note cut note (long dash) or effect (`S00`)
 
-- Note cuts, which appear in Trackerboy as a long dash, are interpreted by this converter as a note cut effect. Therefore, please do not write any effect in the same row as such, as it will be ignored
+- ##### Volume envelope effects (`Exy`) must always be accompanied by a note
 
-- Timbre effect (`Vxx`), for our purposes is exclusive to wave CH3 (which actually sets its volume, not timbre). For changing timbre/waveforms in CH3, please do not use Trackerboy's `Exx` command. Instead, use the wave instruments provided by the gbt template file. This is the same for timbral changes in 1, 2, & 4 – please use the appropriate instrument provided in the gbt template file, as `Vxx` will be ignored in channels 1, 2, & 4.
+    One case where this can cause confusion is setting `E00` expecting a note cutoff. Instead, it is better to write a Trackerboy note cut (long dash that appears in the note column) or effect (`S00`)
 
-- Auto-vibrato (`4xy`) is not supported in GBT-player. Due to this limitation, you'll need to use pitch up-slide (`1xx`) and pitch down-slide (`2xx`) instead to achieve this manually.
+- ##### Volume envelope effects (`Exy`) are "sticky"
+
+    While you must accompany an `Exy` with a note, it's okay to write notes without an envelope effect - it will maintain the last envelope effect that was called on that channel.
+
+- ##### Note cuts are effects
+
+    Note cuts in Trackerboy are interpreted as an effect in GB Studio's player.
+    Therefore, please do not write any effect in the same row - it will be ignored
+
+- ##### Timbral effects are set by instrument number
+
+    GB Studio uses instrument number presets to accomplish timbral changes.
+    For changing timbre/waveforms in channels 1-4, please use the appropriate instrument numbers in the template file instead of using effects. `Vxx`, for our purposes will only be used as the volume setting for CH3, and will be ignored in channels 1, 2, & 4.
+
+- ##### Auto-vibrato (`4xy`) is not supported in GB Studio
+
+    Due to this limitation, you'll need to handcraft pitch up-slide (`1xx`) and pitch down-slide (`2xx`) to achieve this manually.
 
     For example:
 
@@ -111,9 +123,10 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
         --- -- 101
         --- -- 100
 
-- Pitch slides up (`1xx`) and down (`2xx`) get cancelled out to zero in gbt-player after the row is finished, but in Trackerboy they stick. For this reason, we recommend to use a second effect column to write `100` to stop the slide effect in Trackerboy.
+    Pitch slides up (`1xx`) and down (`2xx`) get cancelled out to zero in GB Studio after the row is finished, but in Trackerboy they stick. For this reason, we recommend to use a second effect column to write `100` to stop the slide effect cosmetically in Trackerboy.
 
-    In the last example, since `100` is redundant in gbt-player, let's move it over to column 2 make room for another effect in column 1. (Click on the `+` icon at the top of the channel to reveal another effect row):
+    In the last example, since writing `100` is redundant for GB Studio, let's move it over to column 2 make room for another effect in column 1. (Click on the `+` icon at the top of the channel column in Trackerboy to reveal another effect row):
+
         C-5 01 --- ---
         --- -- 201 ---
         --- -- 101 ---
@@ -122,11 +135,13 @@ Export *mysong.tbm*, song 1 to *bin/newname.mod*
         G-5 01 E20 100
 
 
-Please check out [Trackerboy's Effect List](https://www.trackerboy.org/manual/tracker/effect-list/) and [GB Studio's GBT Music docs](https://www.gbstudio.dev/docs/assets/music/music-gbt) for further info.
+For further reading, please check out [Trackerboy's Effect List](https://www.trackerboy.org/manual/tracker/effect-list/) and [GB Studio GBT Music docs](https://www.gbstudio.dev/docs/assets/music/music-gbt)
 
 ## Future Ideas
 - Auto-vibrato (add pitch up and down slides automatically)
 
 ## Last Remarks
-- This converter is under development, so there will be bugs. Please report them in Issues.
-- Exporting with this tool overwrites the target file, so any direct edits to the generated .mod file will be overwritten. Please save backups of any such edits.
+
+- Exporting with this tool overwrites the target file - please save backups of any direct edits you wish to keep at the export location before running the program.
+- This converter targets the [GB Studio music player](https://github.com/tadashibashi/gbstudio-mod-example), which is based on a fork of gbt-player, and will not play back accurately using a build from gbt-player's main branch.
+- For bug reports, please create a Github Issue.
